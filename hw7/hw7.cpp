@@ -47,7 +47,6 @@
 #pragma GCC target("avx2,bmi,bmi2,lzcnt,popcnt")
 #include <bits/stdc++.h>
 using namespace std;
-
 // Function to calculate IDF
 double idf(int totalDocs, int docsWithTerm) {
     return log10((double)totalDocs / docsWithTerm);
@@ -65,12 +64,12 @@ vector<string> split(const string &text) {
                 cleaned_word += tolower(c);
             }
         }
-        words.push_back(cleaned_word);
+        if (cleaned_word != "") words.push_back(cleaned_word);
     }
     return words;
 }
 
-int main(int argc, char *argv[]) {
+int32_t main(int32_t argc, char *argv[]) {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
     cout.tie(NULL);
