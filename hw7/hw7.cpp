@@ -83,18 +83,15 @@ int main(int argc, char *argv[]) {
     ifstream query_file(query_file_name);
     string line;
     unordered_map<string, unordered_map<int, double>> tfValues;
-    unordered_map<int, int> docLength;
     int totalDocs = 0;
 
     while (getline(corpus_file, line)) {
         int s_id;
         string context;
-
         size_t pos = line.find(',');
         s_id = stoi(line.substr(0, pos));
         context = line.substr(pos + 2);
         context.erase(remove(context.begin(), context.end(), '\"'), context.end());
-
         vector<string> words = split(context);
         for (const string &word : words) {
             tfValues[word][s_id]++;
