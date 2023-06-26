@@ -50,7 +50,7 @@ using namespace std;
 
 // Function to calculate IDF
 double idf(int totalDocs, int docsWithTerm) {
-    return log10((double)totalDocs / (double)docsWithTerm);
+    return log10((double)totalDocs / docsWithTerm);
 }
 
 // Function to split a string into words
@@ -81,11 +81,7 @@ int main(int argc, char *argv[]) {
 
     ifstream corpus_file(corpus_file_name);
     ifstream query_file(query_file_name);
-
-    // parse corpus file and calculate IDF values
     string line;
-    unordered_map<string, int> corpusCount;
-    unordered_map<string, unordered_set<int>> docsWithTerm;
     unordered_map<string, unordered_map<int, double>> tfValues;
     unordered_map<int, int> docLength;
     int totalDocs = 0;
@@ -96,18 +92,12 @@ int main(int argc, char *argv[]) {
 
         size_t pos = line.find(',');
         s_id = stoi(line.substr(0, pos));
-        context = line.substr(pos + 1);
-        // context.erase(remove(context.begin(), context.end(), '\"'), context.end());
-        // cout << s_id << ": " << context << "\n";
+        context = line.substr(pos + 2);
+        context.erase(remove(context.begin(), context.end(), '\"'), context.end());
 
         vector<string> words = split(context);
-        docLength[s_id] = words.size();
         for (const string &word : words) {
             tfValues[word][s_id]++;
-            if (docsWithTerm[word].find(s_id) == docsWithTerm[word].end()) {
-                corpusCount[word]++;
-                docsWithTerm[word].insert(s_id);
-            }
         }
         unordered_set<string> unique_words(words.begin(), words.end());
         for (const string &word : unique_words) {
@@ -115,35 +105,29 @@ int main(int argc, char *argv[]) {
         }
         totalDocs++;
     }
-    // calculate IDF for each term in corpus
     unordered_map<string, double> idfValues;
-    for (auto const &pair : corpusCount) {
-        idfValues[pair.first] = idf(totalDocs, pair.second);
-    } 
-
-    // read queries and rank results
+    for (auto const &[word, id_set] : tfValues) {
+        idfValues[word] = idf(totalDocs, id_set.size());
+    }
     while (getline(query_file, line)) {
         vector<string> query_words = split(line);
         unordered_map<int, double> docScores;
-        unordered_map<int, vector<pair<double, string>>> docPositions;
-        unordered_set<int> queryWordsAppearDocIds;
         //3, 14, 31
         for (const string &word : query_words) {
-            if (docsWithTerm.count(word) == 0)
-                continue;
-            for (int docId : docsWithTerm[word]) {
-                docScores[docId] += idfValues[word] * tfValues[word][docId];
+            for (const auto &[docId, new_tf] : tfValues[word]) {
+                docScores[docId] += idfValues[word] * new_tf;
             }
         }
         vector<pair<int, double>> docScoresVec(docScores.begin(), docScores.end());
         sort(docScoresVec.begin(), docScoresVec.end(), [](pair<int, double> a, pair<int, double> b) {
-            return abs(a.second - b.second) < 1e-7 ? a.first < b.first : a.second > b.second;
+            return a.second == b.second ? a.first < b.first : a.second > b.second;
         });
 
         for (int i = 0; i < k; i++) {
             if (i < docScoresVec.size()) {
                 cout << docScoresVec[i].first;
-            } else {
+            } 
+            else {
                 cout << "-1";
             }
             cout << ((i != k-1) ? " " : "\n");
