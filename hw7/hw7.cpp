@@ -115,7 +115,7 @@ int32_t main(int32_t argc, char *argv[]) {
             }
         }
         vector<pair<int, double>> docScoresVec(docScores.begin(), docScores.end());
-        sort(docScoresVec.begin(), docScoresVec.end(), [](pair<int, double> a, pair<int, double> b) {
+        sort(docScoresVec.begin(), docScoresVec.end(), [](const pair<int, double> &a, const pair<int, double> &b) {
             return a.second == b.second ? a.first < b.first : a.second > b.second;
         });
 
